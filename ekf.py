@@ -8,9 +8,13 @@ F_default = np.eye(21)
 # Jacobians
 
 def H_gps_jacobian(x):
-    H = np.zeros((9, 21))
-    H[0:9, 0:9] = np.eye(9)
+    H = np.zeros((6, 21))
+    # derivatives of [phi,theta,psi] w.r.t x[6:9]
+    H[0:3, 6:9] = np.eye(3)
+    # derivatives of [u,v,w] w.r.t x[3:6]
+    H[3:6, 3:6] = np.eye(3)
     return H
+
 
 def H_airdata_jacobian(x):
     u, v, w = x[3:6]

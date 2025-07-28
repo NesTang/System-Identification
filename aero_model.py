@@ -3,7 +3,6 @@ import numpy as np
 
 # Aircraft constants
 mass = 4900
-rho = 1.225
 S = 24.9900
 c = 1.9910
 b = 13.3250
@@ -17,11 +16,17 @@ I = np.array([[Ixx, 0, -Ixz],
               [-Ixz, 0, Izz]])
 I_inv = np.linalg.inv(I)
 
+# Updated air density at 8500 m altitude
+def get_air_density(altitude_m=8500):
+    if altitude_m == 8500:
+        return 0.459  # kg/m³ at 8500m
+    else:
+        return 1.225  # default sea level
+
+rho = get_air_density(8500)
+
 # === Force and Moment Coefficient Calculations ===
 def compute_force_coefficients(states):
-    """
-    Returns CX, CY, CZ per time step.
-    """
     u, v, w = states[:, 3], states[:, 4], states[:, 5]
     ax, ay, az = np.gradient(u), np.gradient(v), np.gradient(w)
     Vt = np.sqrt(u**2 + v**2 + w**2)
@@ -37,9 +42,6 @@ def compute_force_coefficients(states):
     return np.stack([CX, CY, CZ], axis=1)
 
 def compute_moment_coefficients(states):
-    """
-    Returns Cl, Cm, Cn per time step.
-    """
     p, q, r = states[:, 9], states[:, 10], states[:, 11]
     dp = np.gradient(p)
     dq = np.gradient(q)
@@ -56,6 +58,5 @@ def compute_moment_coefficients(states):
 
 # === OLS Estimator ===
 def fit_ols(X, Y):
-    """ Ordinary Least Squares estimator """
     beta = np.linalg.pinv(X.T @ X) @ X.T @ Y
     return beta

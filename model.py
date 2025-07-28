@@ -7,9 +7,13 @@ def rotation_matrix(phi, theta, psi):
 
 def state_transition(x, u, dt):
     """
-    18-state model:
-    [x, y, z, u, v, w, phi, theta, psi, p, q, r, bax, bay, baz, bgx, bgy, bgz, Wx, Wy, Wz]
-    u: measured accelerations [ax, ay, az] and angular rates [p, q, r]
+    21-state model:
+    [x, y, z, u, v, w, phi, theta, psi,
+     p, q, r, bax, bay, baz, bgx, bgy, bgz, Wx, Wy, Wz]
+
+    x: state vector
+    u: measurements [Ax,Ay,Az, p,q,r]
+    dt: time step
     """
     pos = x[0:3]
     vel = x[3:6]
@@ -19,17 +23,12 @@ def state_transition(x, u, dt):
     gyro_bias = x[15:18]
     wind = x[18:21]
 
-    # Inputs minus biases
     acc_meas = u[0:3] - acc_bias
     gyro_meas = u[3:6] - gyro_bias
 
-    # Body to inertial rotation
     R_ib = rotation_matrix(*angles)
+    pos_dot = R_ib @ vel + wind
 
-    # Position derivative
-    pos_dot = R_ib @ vel
-
-    # Euler angle derivative
     phi, theta, psi = angles
     p, q, r = gyro_meas
     T = np.array([
@@ -39,29 +38,29 @@ def state_transition(x, u, dt):
     ])
     euler_dot = T @ np.array([p, q, r])
 
-    # Velocity derivative (simple model)
     vel_dot = acc_meas + np.cross(rates, vel)
 
-    # Rate derivative = 0 (no model for rate dynamics)
-    # Biases and wind assumed constant => derivative = 0
-
-    # Integrate all
     x_new = np.copy(x)
     x_new[0:3] += pos_dot * dt
     x_new[3:6] += vel_dot * dt
     x_new[6:9] += euler_dot * dt
-    x_new[9:12] = gyro_meas  # could be dynamic
-    # biases and wind remain unchanged
-
+    x_new[9:12] = gyro_meas
     return x_new
 
 # === Measurement Models ===
 def gps_measurement(x):
-    return np.hstack((x[0:3], x[3:6], x[6:9]))
+    """
+    GPS: attitude (phi,theta,psi) + ground velocities (u,v,w)
+    Returns shape (6,)
+    """
+    # x[6:9] = [phi, theta, psi]
+    # x[3:6] = [u, v, w] in body frame (we assume it's ground‑referenced here)
+    return np.hstack((x[6:9], x[3:6]))
+
 
 def airdata_measurement(x):
     u, v, w = x[3:6]
     Vt = np.sqrt(u**2 + v**2 + w**2)
     alpha = np.arctan2(w, u)
-    beta = np.arcsin(v / Vt) if Vt > 0 else 0.0
+    beta = np.arcsin(v / Vt) if Vt else 0.0
     return np.array([Vt, alpha, beta])
