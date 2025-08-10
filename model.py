@@ -7,44 +7,38 @@ def rotation_matrix(phi, theta, psi):
 
 def state_transition(x, u, dt):
     """
-    21-state model:
-    [x, y, z, u, v, w, phi, theta, psi,
-     p, q, r, bax, bay, baz, bgx, bgy, bgz, Wx, Wy, Wz]
-
-    x: state vector
-    u: measurements [Ax,Ay,Az, p,q,r]
-    dt: time step
+    18-state EKF state transition for Part 2.
+    State: [pos(3), vel(3), att(3), acc_bias(3), gyro_bias(3), wind(3)]
+    Input u: [Ax, Ay, Az, p, q, r]
     """
+
+    # --- Extract states ---
     pos = x[0:3]
     vel = x[3:6]
-    angles = x[6:9]
-    rates = x[9:12]
-    acc_bias = x[12:15]
-    gyro_bias = x[15:18]
-    wind = x[18:21]
+    att = x[6:9]
+    acc_bias = x[9:12]
+    gyro_bias = x[12:15]
+    wind = x[15:18]  # Estimated wind (NED)
 
+    # --- Extract and bias-correct IMU inputs ---
     acc_meas = u[0:3] - acc_bias
     gyro_meas = u[3:6] - gyro_bias
 
-    R_ib = rotation_matrix(*angles)
-    pos_dot = R_ib @ vel + wind
+    # --- Rotation matrix body->inertial ---
+    R_ib = rotation_matrix(att[0], att[1], att[2])
 
-    phi, theta, psi = angles
-    p, q, r = gyro_meas
-    T = np.array([
-        [1, np.sin(phi)*np.tan(theta), np.cos(phi)*np.tan(theta)],
-        [0, np.cos(phi), -np.sin(phi)],
-        [0, np.sin(phi)/np.cos(theta), np.cos(phi)/np.cos(theta)]
-    ])
-    euler_dot = T @ np.array([p, q, r])
+    # --- Simple dynamics ---
+    pos_dot = R_ib @ vel        # Position changes by inertial velocity
+    vel_dot = R_ib @ acc_meas   # Accelerations converted to NED
+    att_dot = gyro_meas         # Simple Euler integration for attitude
 
-    vel_dot = acc_meas + np.cross(rates, vel)
-
-    x_new = np.copy(x)
+    # --- Euler integration ---
+    x_new = x.copy()
     x_new[0:3] += pos_dot * dt
     x_new[3:6] += vel_dot * dt
-    x_new[6:9] += euler_dot * dt
-    x_new[9:12] = gyro_meas
+    x_new[6:9] += att_dot * dt
+    # Biases and wind: random walk → unchanged in deterministic model
+
     return x_new
 
 # === Measurement Models ===

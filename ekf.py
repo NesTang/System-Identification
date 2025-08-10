@@ -36,8 +36,9 @@ def H_airdata_jacobian(x):
 def ekf_step(x, P, u, z, h_func, H_func, R_meas, Q, dt):
     # Predict
     x_pred = state_transition(x, u, dt)
-    F = F_default  # optionally compute F from linearization
+    F = np.eye(len(x))  # Replace F_default
     P_pred = F @ P @ F.T + Q
+
 
     # Update
     H = H_func(x_pred)
