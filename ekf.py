@@ -48,3 +48,20 @@ def ekf_step(x, P, u, z, h_func, H_func, R_meas, Q, dt):
     x_upd = x_pred + K @ y
     P_upd = (np.eye(len(x)) - K @ H) @ P_pred
     return x_upd, P_upd
+
+def ekf_step_with_innov(x, P, u, z, h_func, H_func, R_meas, Q, dt):
+    # Predict
+    x_pred = state_transition(x, u, dt)
+    F = F_default
+    P_pred = F @ P @ F.T + Q
+
+    # Innovation (pre-update)
+    H = H_func(x_pred)
+    y = z - h_func(x_pred)                 # innovation
+    S = H @ P_pred @ H.T + R_meas          # innovation covariance
+
+    # Update
+    K = P_pred @ H.T @ np.linalg.inv(S)
+    x_upd = x_pred + K @ y
+    P_upd = (np.eye(len(x)) - K @ H) @ P_pred
+    return x_upd, P_upd, y, S
