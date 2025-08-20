@@ -1,4 +1,3 @@
-# load_and_inspect_csv.py
 import zipfile
 import os
 import pandas as pd

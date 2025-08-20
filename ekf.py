@@ -1,4 +1,3 @@
-# ekf.py
 import numpy as np
 from model import state_transition, gps_measurement, airdata_measurement
 

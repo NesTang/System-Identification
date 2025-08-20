@@ -1,5 +1,3 @@
-# aircraft_ekf_estimator.py
-
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from scipy.io import loadmat

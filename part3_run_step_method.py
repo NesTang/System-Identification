@@ -1,4 +1,3 @@
-# run_step_method.py
 import os, numpy as np, pandas as pd, matplotlib.pyplot as plt
 from data_loader import load_csv_data
 from step_method import (build_longitudinal_step, build_lateral_step, ridge_or_ols)

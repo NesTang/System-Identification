@@ -1,4 +1,3 @@
-# model_analysis.py
 import numpy as np
 import matplotlib.pyplot as plt
 from regression import build_force_design_matrix, estimate_aero_model

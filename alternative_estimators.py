@@ -1,4 +1,3 @@
-# alternative_estimators.py
 import numpy as np
 
 def fit_wls(X, Y, weights):

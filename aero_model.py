@@ -1,4 +1,3 @@
-# aero_model.py
 import numpy as np
 
 # Aircraft constants
