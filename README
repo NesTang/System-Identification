@@ -1,0 +1,15 @@
+Here's the explanation of what scripts to run in order to see the results
+
+Part 1: part1_data_preprocessing.py
+Part 2: part2_ekf_pipeline.py
+Part 3: part3_run_step_method.py
+
+The remaing scripts are either build-up to the aforementioned main scripts or unused.
+
+All outputs are stored in separate folders as follows:
+
+Part 1: figures
+Part 2: plots
+Part 3: plots_step
+
+For Part 2 and 3, there should also be numerical results being printed out and stored in CSV files.
